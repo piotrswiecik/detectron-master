@@ -1,0 +1,32 @@
+[project]
+name = "detectron-master"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "albumentationsx>=2.0.16",
+    "mlflow>=3.9.0",
+    "opencv-python>=4.13.0.92",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.1",
+    "pyyaml>=6.0.3",
+    "shapely>=2.1.2",
+    "torch>=2.10.0",
+    "torchvision>=0.25.0",
+    "typer>=0.23.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.0",
+    "ty>=0.0.16",
+]
+
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "-q"]
+testpaths = [
+    "tests",
+]
