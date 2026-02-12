@@ -19,9 +19,9 @@ uv pip install -e .
 ## Training commands
 
 ```shell
-uv run train.py --data-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax --epochs 1 --batch-size 2 --params-file params.json
+train-multi --data-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax --epochs 1 --batch-size 2 --params-file params.json
 
-uv run train.py --data-root /home/ives/piotr/arcade/syntax --epochs 1 --batch-size 2 --params-file params.json
+train-multi --data-root /home/ives/piotr/arcade/syntax --epochs 1 --batch-size 2 --params-file params.json
 ```
 
 ## Data reference

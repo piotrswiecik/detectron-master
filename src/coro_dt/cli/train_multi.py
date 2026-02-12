@@ -3,7 +3,7 @@ import os
 import json
 import typer
 
-from config import ParamsConfig
+from coro_dt.config import ParamsConfig
 from coro_dt.training.multi.trainer import ArcadeOrchestrator
 
 app = typer.Typer()
