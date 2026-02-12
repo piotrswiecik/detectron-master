@@ -30,6 +30,12 @@ train-multi --data-root /home/ives/piotr/arcade/syntax --epochs 1 --batch-size 2
 sample-multi /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/test/images/2.png --use-cpu --threshold 0.1 --params-file params.json
 ```
 
+## Binary finetuning
+
+```shell
+train-binary --data-root /home/ives/piotr/arcade/syntax --weights /path/to/multi-class/output/model_final.pth --epochs 5
+```
+
 ## Data reference
 
 Shape of ARCADE annotation.
