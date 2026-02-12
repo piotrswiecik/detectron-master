@@ -17,6 +17,9 @@ dependencies = [
     "typer>=0.23.0",
 ]
 
+[project.scripts]
+train-multi = "coro_dt.cli.train_multi:app"
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",

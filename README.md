@@ -11,6 +11,9 @@ uv sync
 
 # install detectron but when building source - reuse dependencies from step 1
 uv pip install 'git+https://github.com/facebookresearch/detectron2.git' --no-build-isolation
+
+# install cli tools
+uv pip install -e .
 ```
 
 ## Training commands
