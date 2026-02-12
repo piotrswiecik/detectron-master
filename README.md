@@ -24,6 +24,12 @@ train-multi --data-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/sy
 train-multi --data-root /home/ives/piotr/arcade/syntax --epochs 1 --batch-size 2 --params-file params.json
 ```
 
+## Sampling commands
+
+```shell
+sample-multi /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/test/images/2.png --use-cpu --threshold 0.1 --params-file params.json
+```
+
 ## Data reference
 
 Shape of ARCADE annotation.
