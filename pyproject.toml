@@ -14,7 +14,7 @@ dependencies = [
     "shapely>=2.1.2",
     "torch>=2.10.0",
     "torchvision>=0.25.0",
-    "setuptools",
+    "setuptools<81",
     "typer>=0.23.0",
 ]
 
