@@ -1,9 +1,7 @@
 import datetime
 import logging
-import math
 import os
 import json
-import time
 
 from detectron2.engine import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
@@ -14,16 +12,13 @@ from detectron2.data import (
     MetadataCatalog,
     DatasetCatalog,
     build_detection_train_loader,
-    build_detection_test_loader,
 )
-from detectron2.engine.hooks import HookBase
-import detectron2.utils.comm as comm
-import mlflow
 from dotenv import load_dotenv
-import numpy as np
+import mlflow
+from coro_dt.config import ParamsConfig
 from coro_dt.data.adapter import Adapter
 from coro_dt.training.multi.hooks import EvalHook, MLFlowHook
-from coro_dt.training.multi.mappers import validation_mapper, build_custom_mapper
+from coro_dt.training.multi.mappers import build_custom_mapper
 
 
 setup_logger()
@@ -49,9 +44,13 @@ class ArcadeTrainer(DefaultTrainer):
 
 
 class ArcadeOrchestrator:
-    def __init__(self, arcade_syntax_root: str, model_output_dir: str):
+    def __init__(
+        self, arcade_syntax_root: str, model_output_dir: str, params: ParamsConfig
+    ):
         self.log = logging.getLogger(__name__ + ".ArcadeOrchestrator")
         self.model_output_dir = model_output_dir
+        self.params = params
+        self.backbone = params.backbone.value
 
         self.class_names = []
         self.num_train_images = 0
@@ -89,11 +88,7 @@ class ArcadeOrchestrator:
                 raise ValueError("No training images found")
 
             self.cfg = get_cfg()
-            self.cfg.merge_from_file(
-                model_zoo.get_config_file(
-                    "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
-                )
-            )
+            self.cfg.merge_from_file(model_zoo.get_config_file(self.backbone))
 
             self.cfg.DATASETS.TRAIN = ("arcade_train",)
             self.cfg.DATASETS.TEST = (
@@ -101,9 +96,7 @@ class ArcadeOrchestrator:
             )
 
             self.cfg.DATALOADER.NUM_WORKERS = 4
-            self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(
-                "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
-            )
+            self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.backbone)
 
             self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256
             self.cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(self.class_names)
@@ -114,17 +107,14 @@ class ArcadeOrchestrator:
         self,
         epochs: int,
         batch: int = 2,
-        base_lr: float = 0.00025,
-        hyperparameters: dict | None = None,
     ):
-        hyperparameters = hyperparameters or {}
-
+        p = self.params
         one_epoch_iters = self.num_train_images // batch
         max_iter = one_epoch_iters * epochs
 
         self.cfg.SOLVER.IMS_PER_BATCH = batch
-        self.cfg.SOLVER.BASE_LR = base_lr
-        self.cfg.SOLVER.WARMUP_ITERS = 1000  # ramp up learning rate
+        self.cfg.SOLVER.BASE_LR = p.base_lr
+        self.cfg.SOLVER.WARMUP_ITERS = 1000
         self.cfg.SOLVER.MAX_ITER = max_iter
         self.cfg.SOLVER.STEPS = (int(max_iter * 0.6), int(max_iter * 0.8))
         self.cfg.SOLVER.GAMMA = 0.1
@@ -137,30 +127,23 @@ class ArcadeOrchestrator:
         self.cfg.SOLVER.CLIP_GRADIENTS.CLIP_VALUE = 1.0
         self.cfg.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
 
-        # backbone freeze (0, 1, 2)
-        if "freeze_at" in hyperparameters and hyperparameters["freeze_at"] in [0, 1, 2]:
-            self.cfg.MODEL.BACKBONE.FREEZE_AT = hyperparameters["freeze_at"]
+        if p.freeze_at in [0, 1, 2]:
+            self.cfg.MODEL.BACKBONE.FREEZE_AT = p.freeze_at
 
-        # anchor sizes
-        if "anchor_sizes" in hyperparameters:
-            sizes = hyperparameters["anchor_sizes"]
-            if len(sizes) != 5:
-                self.log.warning(
-                    f"Warning: FPN expects 5 anchor sizes, got {len(sizes)}. This might crash."
-                )
-            self.cfg.MODEL.ANCHOR_GENERATOR.SIZES = sizes
+        if len(p.anchor_sizes) != 5:
+            self.log.warning(
+                f"Warning: FPN expects 5 anchor sizes, got {len(p.anchor_sizes)}. This might crash."
+            )
+        self.cfg.MODEL.ANCHOR_GENERATOR.SIZES = p.anchor_sizes
 
-        # anchor aspect ratios
-        if "anchor_ratios" in hyperparameters:
-            self.cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = hyperparameters[
-                "anchor_ratios"
-            ]
+        self.cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = p.anchor_ratios
 
-        # roi head batch size
-        if "roi_batch_size" in hyperparameters:
-            self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = hyperparameters[
-                "roi_batch_size"
-            ]
+        self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = p.roi_batch_size
+
+        self.cfg.INPUT.MIN_SIZE_TRAIN = tuple(p.input_min_sizes)
+
+        if p.input_max_size:
+            self.cfg.INPUT.MAX_SIZE_TRAIN = p.input_max_size
 
         experiment_name = os.getenv("MLFLOW_EXPERIMENT")
         mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))

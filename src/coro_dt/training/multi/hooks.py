@@ -26,6 +26,10 @@ import torch
 from dotenv import load_dotenv
 import numpy as np
 
+from coro_dt.data.converter import DetectronToArcadeConverter
+from coro_dt.data.metrics import ArcadeMetricsCalculator
+from coro_dt.training.multi.mappers import validation_mapper
+
 
 class EvalHook(HookBase):
     def __init__(self, cfg):
