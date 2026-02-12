@@ -13,6 +13,14 @@ uv sync
 uv pip install 'git+https://github.com/facebookresearch/detectron2.git' --no-build-isolation
 ```
 
+## Training commands
+
+```shell
+uv run train.py --data-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax --epochs 1 --batch-size 2 --params-file params.json
+
+uv run train.py --data-root /home/ives/piotr/arcade/syntax --epochs 1 --batch-size 2 --params-file params.json
+```
+
 ## Data reference
 
 Shape of ARCADE annotation.
