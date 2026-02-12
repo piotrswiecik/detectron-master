@@ -43,7 +43,7 @@ class EvalHook(HookBase):
         """Get reverse ID mapping from metadata."""
         try:
             metadata = MetadataCatalog.get(self.cfg.DATASETS.TEST[0])
-            if hasattr(metadata, 'id_reverse_map'):
+            if hasattr(metadata, "id_reverse_map"):
                 return metadata.id_reverse_map
         except (IndexError, KeyError):
             pass
@@ -59,7 +59,7 @@ class EvalHook(HookBase):
             self.log.warning("No test dataset configured. ARCADE metrics unavailable.")
             return {}
 
-        if hasattr(metadata, 'adapter_instance'):
+        if hasattr(metadata, "adapter_instance"):
             adapter = metadata.adapter_instance
 
             # Group annotations by image_id
@@ -68,11 +68,10 @@ class EvalHook(HookBase):
                 image_id = image["id"]
                 gt_by_image[image_id] = {
                     "annotations": [
-                        ann for ann in adapter._raw_anns
-                        if ann["image_id"] == image_id
+                        ann for ann in adapter._raw_anns if ann["image_id"] == image_id
                     ],
                     "height": image["height"],
-                    "width": image["width"]
+                    "width": image["width"],
                 }
 
             return gt_by_image
@@ -120,8 +119,12 @@ class EvalHook(HookBase):
         if self.arcade_ground_truth:
             sample_key = next(iter(self.arcade_ground_truth.keys()))
             sample_val = self.arcade_ground_truth[sample_key]
-            print(f"[DIAG] Sample GT key type: {type(sample_key).__name__}, value: {sample_key}")
-            print(f"[DIAG] Sample GT has {len(sample_val['annotations'])} annotations, dims: {sample_val['height']}x{sample_val['width']}")
+            print(
+                f"[DIAG] Sample GT key type: {type(sample_key).__name__}, value: {sample_key}"
+            )
+            print(
+                f"[DIAG] Sample GT has {len(sample_val['annotations'])} annotations, dims: {sample_val['height']}x{sample_val['width']}"
+            )
 
         start_time = time.perf_counter()
         total_compute_time = 0
@@ -155,20 +158,34 @@ class EvalHook(HookBase):
                         image_id = input_dict["image_id"]
 
                         if diag_images_processed == 1:
-                            print(f"[DIAG] First input image_id: {image_id} (type: {type(image_id).__name__})")
-                            print(f"[DIAG] First input image shape: {input_dict['image'].shape}")
+                            print(
+                                f"[DIAG] First input image_id: {image_id} (type: {type(image_id).__name__})"
+                            )
+                            print(
+                                f"[DIAG] First input image shape: {input_dict['image'].shape}"
+                            )
                             instances = output["instances"].to("cpu")
-                            print(f"[DIAG] First output has {len(instances)} raw instances")
+                            print(
+                                f"[DIAG] First output has {len(instances)} raw instances"
+                            )
                             if len(instances) > 0:
-                                print(f"[DIAG] First instance scores: {instances.scores[:5].tolist()}")
+                                print(
+                                    f"[DIAG] First instance scores: {instances.scores[:5].tolist()}"
+                                )
                                 if instances.has("pred_masks"):
-                                    print(f"[DIAG] pred_masks shape: {instances.pred_masks.shape}")
-                                    print(f"[DIAG] pred_masks dtype: {instances.pred_masks.dtype}")
+                                    print(
+                                        f"[DIAG] pred_masks shape: {instances.pred_masks.shape}"
+                                    )
+                                    print(
+                                        f"[DIAG] pred_masks dtype: {instances.pred_masks.dtype}"
+                                    )
 
                         if image_id not in self.arcade_ground_truth:
                             diag_id_mismatches += 1
                             if diag_id_mismatches <= 3:
-                                print(f"[DIAG] image_id {image_id} not in arcade_ground_truth")
+                                print(
+                                    f"[DIAG] image_id {image_id} not in arcade_ground_truth"
+                                )
                             continue
 
                         diag_images_with_gt += 1
@@ -184,7 +201,7 @@ class EvalHook(HookBase):
 
                         if len(instances) > 0:
                             scores_above = (instances.scores >= 0.5).sum().item()
-                            diag_score_filtered += (len(instances) - scores_above)
+                            diag_score_filtered += len(instances) - scores_above
 
                         if len(instances) > 0 and instances.has("pred_masks"):
                             mask_height = instances.pred_masks.shape[1]
@@ -200,28 +217,38 @@ class EvalHook(HookBase):
                             original_width=original_width,
                             transformed_height=mask_height,
                             transformed_width=mask_width,
-                            score_threshold=0.5
+                            score_threshold=0.5,
                         )
 
                         gt_arcade = gt_data["annotations"]
 
                         if diag_images_with_gt == 1:
-                            print(f"[DIAG] Mask dims: {mask_height}x{mask_width}, Original: {original_height}x{original_width}, Image tensor: {transformed_height}x{transformed_width}")
-                            print(f"[DIAG] Scale factors (mask->original): x={original_width/mask_width:.3f}, y={original_height/mask_height:.3f}")
-                            print(f"[DIAG] pred_arcade has {len(pred_arcade)} annotations after conversion")
+                            print(
+                                f"[DIAG] Mask dims: {mask_height}x{mask_width}, Original: {original_height}x{original_width}, Image tensor: {transformed_height}x{transformed_width}"
+                            )
+                            print(
+                                f"[DIAG] Scale factors (mask->original): x={original_width / mask_width:.3f}, y={original_height / mask_height:.3f}"
+                            )
+                            print(
+                                f"[DIAG] pred_arcade has {len(pred_arcade)} annotations after conversion"
+                            )
                             print(f"[DIAG] gt_arcade has {len(gt_arcade)} annotations")
                             if pred_arcade:
-                                print(f"[DIAG] First pred segmentation (first 10 coords): {pred_arcade[0]['segmentation'][:10]}")
+                                print(
+                                    f"[DIAG] First pred segmentation (first 10 coords): {pred_arcade[0]['segmentation'][:10]}"
+                                )
                             if gt_arcade:
-                                seg = gt_arcade[0].get('segmentation', [])
-                                print(f"[DIAG] First GT segmentation (first 10 coords): {seg[:10] if seg else 'empty'}")
+                                seg = gt_arcade[0].get("segmentation", [])
+                                print(
+                                    f"[DIAG] First GT segmentation (first 10 coords): {seg[:10] if seg else 'empty'}"
+                                )
 
                         metrics = self.metrics_calculator.calculate_metrics_for_image(
                             pred_arcade,
                             gt_arcade,
                             original_height,
                             original_width,
-                            iou_threshold=0.5
+                            iou_threshold=0.5,
                         )
 
                         all_ious.extend(metrics["ious"])
@@ -234,8 +261,12 @@ class EvalHook(HookBase):
                 torch.cuda.synchronize()
             total_compute_time += time.perf_counter() - start_compute_time
 
-        print(f"[DIAG] Images processed: {diag_images_processed}, with GT: {diag_images_with_gt}, ID mismatches: {diag_id_mismatches}")
-        print(f"[DIAG] Raw instances total: {diag_raw_instances_total}, filtered by score: {diag_score_filtered}")
+        print(
+            f"[DIAG] Images processed: {diag_images_processed}, with GT: {diag_images_with_gt}, ID mismatches: {diag_id_mismatches}"
+        )
+        print(
+            f"[DIAG] Raw instances total: {diag_raw_instances_total}, filtered by score: {diag_score_filtered}"
+        )
 
         if was_training:
             model.train()
@@ -249,8 +280,12 @@ class EvalHook(HookBase):
         if self.arcade_ground_truth:
             mean_iou = float(np.mean(all_ious)) if all_ious else 0.0
             mean_dice = float(np.mean(all_dices)) if all_dices else 0.0
-            precision = total_matches / total_predictions if total_predictions > 0 else 0.0
-            recall = total_matches / total_ground_truth if total_ground_truth > 0 else 0.0
+            precision = (
+                total_matches / total_predictions if total_predictions > 0 else 0.0
+            )
+            recall = (
+                total_matches / total_ground_truth if total_ground_truth > 0 else 0.0
+            )
 
             self.trainer.storage.put_scalar("arcade/mean_iou", mean_iou)
             self.trainer.storage.put_scalar("arcade/mean_dice", mean_dice)
@@ -316,7 +351,9 @@ class MLFlowHook(HookBase):
 
         # Log anchor-related parameters if available
         try:
-            if hasattr(cfg.MODEL, "BACKBONE") and hasattr(cfg.MODEL.BACKBONE, "FREEZE_AT"):
+            if hasattr(cfg.MODEL, "BACKBONE") and hasattr(
+                cfg.MODEL.BACKBONE, "FREEZE_AT"
+            ):
                 params["MODEL.BACKBONE.FREEZE_AT"] = cfg.MODEL.BACKBONE.FREEZE_AT
         except (AttributeError, Exception) as e:
             logging.getLogger(__name__).debug(f"Could not log FREEZE_AT: {e}")
@@ -325,7 +362,9 @@ class MLFlowHook(HookBase):
             if hasattr(cfg.MODEL, "ANCHOR_GENERATOR"):
                 if hasattr(cfg.MODEL.ANCHOR_GENERATOR, "SIZES"):
                     # Convert nested list to JSON string for MLflow
-                    params["MODEL.ANCHOR_GENERATOR.SIZES"] = json.dumps(cfg.MODEL.ANCHOR_GENERATOR.SIZES)
+                    params["MODEL.ANCHOR_GENERATOR.SIZES"] = json.dumps(
+                        cfg.MODEL.ANCHOR_GENERATOR.SIZES
+                    )
         except (AttributeError, Exception) as e:
             logging.getLogger(__name__).debug(f"Could not log ANCHOR_SIZES: {e}")
 
@@ -333,7 +372,9 @@ class MLFlowHook(HookBase):
             if hasattr(cfg.MODEL, "ANCHOR_GENERATOR"):
                 if hasattr(cfg.MODEL.ANCHOR_GENERATOR, "ASPECT_RATIOS"):
                     # Convert nested list to JSON string for MLflow
-                    params["MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS"] = json.dumps(cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS)
+                    params["MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS"] = json.dumps(
+                        cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS
+                    )
         except (AttributeError, Exception) as e:
             logging.getLogger(__name__).debug(f"Could not log ASPECT_RATIOS: {e}")
 

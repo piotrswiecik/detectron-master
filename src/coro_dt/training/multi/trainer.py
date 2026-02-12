@@ -21,6 +21,7 @@ import detectron2.utils.comm as comm
 import mlflow
 from dotenv import load_dotenv
 import numpy as np
+from coro_dt.data.adapter import Adapter
 from coro_dt.training.multi.hooks import EvalHook, MLFlowHook
 from coro_dt.training.multi.mappers import validation_mapper, build_custom_mapper
 
@@ -45,7 +46,7 @@ class ArcadeTrainer(DefaultTrainer):
         hooks.append(EvalHook(self.cfg))
         hooks.append(MLFlowHook(self.cfg))
         return hooks
-    
+
 
 class ArcadeOrchestrator:
     def __init__(self, arcade_syntax_root: str, model_output_dir: str):
@@ -81,7 +82,7 @@ class ArcadeOrchestrator:
             MetadataCatalog.get(f"arcade_{split}").set(
                 thing_classes=adapter.class_names,
                 id_reverse_map={v: k for k, v in adapter.id_map.items()},
-                adapter_instance=adapter
+                adapter_instance=adapter,
             )
 
             if self.num_train_images == 0:
@@ -151,18 +152,24 @@ class ArcadeOrchestrator:
 
         # anchor aspect ratios
         if "anchor_ratios" in hyperparameters:
-            self.cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = hyperparameters["anchor_ratios"]
+            self.cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = hyperparameters[
+                "anchor_ratios"
+            ]
 
         # roi head batch size
         if "roi_batch_size" in hyperparameters:
-            self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = hyperparameters["roi_batch_size"]
+            self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = hyperparameters[
+                "roi_batch_size"
+            ]
 
         experiment_name = os.getenv("MLFLOW_EXPERIMENT")
         mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
         mlflow.set_experiment(experiment_name)
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        with mlflow.start_run(run_name=f"detectron_epochs_{epochs}_batch_{batch}_dt_{timestamp}"):
+        with mlflow.start_run(
+            run_name=f"detectron_epochs_{epochs}_batch_{batch}_dt_{timestamp}"
+        ):
             trainer = ArcadeTrainer(self.cfg)
             trainer.resume_or_load(resume=False)
 
