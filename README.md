@@ -14,6 +14,9 @@ uv pip install 'git+https://github.com/facebookresearch/detectron2.git' --no-bui
 
 # install cli tools
 uv pip install -e .
+
+# optional: locally install jupyter
+uv pip install ipykernel
 ```
 
 ## Training commands
