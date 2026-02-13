@@ -50,9 +50,9 @@ def infer(
     use_cpu: bool = typer.Option(False, help="Force inference on CPU"),
 ):
     """
-    Run inference on a single image using a trained Detectron2 model.
+    Run inference on a single image using a trained binary vessel detection model.
     """
-    NUM_CLASSES = 25
+    NUM_CLASSES = 1
 
     with open(params_file, "r") as f:
         config = ParamsConfig(**json.load(f))
@@ -96,8 +96,8 @@ def infer(
     instances = outputs["instances"]
     print(f"Found {len(instances)} detected instances.")
 
-    temp_metadata = MetadataCatalog.get("temp_inference")
-    temp_metadata.set(thing_classes=[f"class_{i}" for i in range(NUM_CLASSES)])
+    temp_metadata = MetadataCatalog.get("temp_binary_inference")
+    temp_metadata.set(thing_classes=["vessel"])
 
     v = Visualizer(
         im[:, :, ::-1], metadata=temp_metadata, scale=1.0, instance_mode=ColorMode.IMAGE

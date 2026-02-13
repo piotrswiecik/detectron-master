@@ -22,6 +22,7 @@ dependencies = [
 train-multi = "coro_dt.cli.train_multi:app"
 train-binary = "coro_dt.cli.train_binary:app"
 sample-multi = "coro_dt.cli.sample_multi:app"
+sample-binary = "coro_dt.cli.sample_binary:app"
 
 [dependency-groups]
 dev = [

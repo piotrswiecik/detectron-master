@@ -28,6 +28,8 @@ train-multi --data-root /home/ives/piotr/arcade/syntax --epochs 1 --batch-size 2
 
 ```shell
 sample-multi /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/test/images/2.png --use-cpu --threshold 0.1 --params-file params.json
+
+sample-binary /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/test/images/2.png --use-cpu --threshold 0.1 --params-file params.json
 ```
 
 ## Binary finetuning

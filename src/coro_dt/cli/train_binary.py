@@ -17,7 +17,7 @@ def train(
     epochs: int = typer.Option(10, help="Number of training epochs."),
     batch_size: int = typer.Option(2, help="Batch size for training."),
     params_file: str = typer.Option(
-        None, help="Path to a JSON parameters file for training configuration."
+        ..., help="Path to the JSON parameters file for training configuration (required to define model architecture)."
     ),
     output_dir: str | None = typer.Option(
         None, help="Directory to save training outputs and checkpoints."
@@ -82,16 +82,12 @@ def verify_data_root(data_root: str):
         )
 
 
-def load_config_object(params_file: str | None) -> ParamsConfig:
+def load_config_object(params_file: str) -> ParamsConfig:
     """
     Load training parameters from a JSON file into a ParamsConfig object.
-    If params_file is None, returns ParamsConfig with default values.
     Throws FileNotFoundError if the file does not exist.
     Throws Pydantic ValidationError if the JSON structure does not match ParamsConfig.
     """
-    if params_file is None:
-        return ParamsConfig()
-
     with open(params_file, "r") as f:
         params_dict = json.load(f)
 
