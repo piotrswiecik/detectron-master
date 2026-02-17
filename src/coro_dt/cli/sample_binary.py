@@ -1,15 +1,16 @@
 import glob
 import json
 import os
+from pathlib import Path
+
 import cv2
 import typer
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2 import model_zoo
-from detectron2.utils.visualizer import Visualizer, ColorMode
-from detectron2.data import MetadataCatalog
 
 from coro_dt.config import ParamsConfig
+from coro_dt.data.formatters import format_arcade, format_detectron, format_labelstudio
 
 app = typer.Typer()
 
@@ -48,6 +49,10 @@ def infer(
         ..., help="Path to the JSON parameters file used during training (required to match model architecture)"
     ),
     use_cpu: bool = typer.Option(False, help="Force inference on CPU"),
+    prediction_format: str = typer.Option(
+        "detectron", help="Output format: detectron, arcade, or labelstudio"
+    ),
+    store: bool = typer.Option(False, help="Write prediction JSON to a file in CWD"),
 ):
     """
     Run inference on a single image using a trained binary vessel detection model.
@@ -96,23 +101,26 @@ def infer(
     instances = outputs["instances"]
     print(f"Found {len(instances)} detected instances.")
 
-    temp_metadata = MetadataCatalog.get("temp_binary_inference")
-    temp_metadata.set(thing_classes=["vessel"])
+    h, w = im.shape[:2]
 
-    v = Visualizer(
-        im[:, :, ::-1], metadata=temp_metadata, scale=1.0, instance_mode=ColorMode.IMAGE
-    )
+    if prediction_format == "detectron":
+        result = format_detectron(instances, image_path)
+    elif prediction_format == "arcade":
+        result = format_arcade(instances, image_id=0, height=h, width=w)
+    elif prediction_format == "labelstudio":
+        result = format_labelstudio(instances, orig_height=h, orig_width=w)
+    else:
+        typer.echo(f"Unknown format: {prediction_format}. Use detectron, arcade, or labelstudio.")
+        raise typer.Exit(code=1)
 
-    out = v.draw_instance_predictions(instances.to("cpu"))
+    json_output = json.dumps(result, indent=2)
+    typer.echo(json_output)
 
-    result_image = out.get_image()[:, :, ::-1]
-
-    cv2.namedWindow("Inference Result", cv2.WINDOW_NORMAL)
-    cv2.imshow("Inference Result", result_image)
-
-    print("Press any key to close the window...")
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    if store:
+        stem = Path(image_path).stem
+        out_path = Path.cwd() / f"{stem}_{prediction_format}.json"
+        out_path.write_text(json_output)
+        typer.echo(f"Saved to {out_path}")
 
 
 if __name__ == "__main__":

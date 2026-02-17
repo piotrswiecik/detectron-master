@@ -15,6 +15,9 @@ uv pip install 'git+https://github.com/facebookresearch/detectron2.git' --no-bui
 # install cli tools
 uv pip install -e .
 
+# optional: install label studio format support
+uv pip install -e ".[labelstudio]"
+
 # optional: locally install jupyter
 uv pip install ipykernel
 ```
@@ -30,9 +33,20 @@ train-multi --data-root /home/ives/piotr/arcade/syntax --epochs 1 --batch-size 2
 ## Sampling commands
 
 ```shell
-sample-multi /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/test/images/2.png --use-cpu --threshold 0.1 --params-file params.json
+sample-multi /path/to/image.png --use-cpu --threshold 0.1 --params-file params.json
 
-sample-binary /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/test/images/2.png --use-cpu --threshold 0.1 --params-file params.json
+# default format (detectron) — bounding boxes, class IDs, scores
+sample-binary /path/to/image.png --use-cpu --threshold 0.1 --params-file params.json
+
+# arcade format — polygon segmentations in ARCADE annotation space
+sample-binary /path/to/image.png --use-cpu --threshold 0.1 --params-file params.json --prediction-format arcade
+sample-binary /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/train/images/1.png --use-cpu --threshold 0.1 --params-file params.json --prediction-format arcade
+
+# label studio format — RLE-encoded masks for Label Studio pre-annotations (requires optional dependency, see below)
+sample-binary /path/to/image.png --use-cpu --threshold 0.1 --params-file params.json --prediction-format labelstudio
+
+# persist prediction JSON to a file in the current directory
+sample-binary /path/to/image.png --use-cpu --threshold 0.1 --params-file params.json --prediction-format detectron --store
 ```
 
 ## Binary finetuning
@@ -93,3 +107,28 @@ Shape of Detectron annotation.
 ```
 
 Bbox modes: XYXY_ABS = 0, XYWH_ABS = 1, XYXY_REL = 2, XYWH_REL = 3, XYWHA_ABS = 4
+
+Shape of Label Studio pre-annotation (brushlabels with RLE-encoded masks).
+
+```json
+{
+    "result": [
+        {
+            "id": "abc12345",
+            "from_name": "brush_labels",
+            "to_name": "image",
+            "type": "brushlabels",
+            "original_width": 512,
+            "original_height": 512,
+            "image_rotation": 0,
+            "value": {
+                "format": "rle",
+                "rle": [0, 10, 1, 5, "..."],
+                "brushlabels": ["vessel"]
+            },
+            "score": 0.95
+        }
+    ],
+    "score": 0.85
+}
+```

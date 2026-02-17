@@ -24,6 +24,9 @@ train-binary = "coro_dt.cli.train_binary:app"
 sample-multi = "coro_dt.cli.sample_multi:app"
 sample-binary = "coro_dt.cli.sample_binary:app"
 
+[project.optional-dependencies]
+labelstudio = ["label-studio-converter"]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
