@@ -15,9 +15,6 @@ uv pip install 'git+https://github.com/facebookresearch/detectron2.git' --no-bui
 # install cli tools
 uv pip install -e .
 
-# optional: install label studio format support
-uv pip install -e ".[labelstudio]"
-
 # optional: locally install jupyter
 uv pip install ipykernel
 ```

@@ -16,6 +16,7 @@ dependencies = [
     "torchvision>=0.25.0",
     "setuptools<81",
     "typer>=0.23.0",
+    "label-studio-converter>=0.0.59",
 ]
 
 [project.scripts]
