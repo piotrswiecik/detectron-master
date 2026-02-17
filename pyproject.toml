@@ -17,6 +17,7 @@ dependencies = [
     "setuptools<81",
     "typer>=0.23.0",
     "label-studio-converter>=0.0.59",
+    "streamlit>=1.54.0",
 ]
 
 [project.scripts]
@@ -24,6 +25,7 @@ train-multi = "coro_dt.cli.train_multi:app"
 train-binary = "coro_dt.cli.train_binary:app"
 sample-multi = "coro_dt.cli.sample_multi:app"
 sample-binary = "coro_dt.cli.sample_binary:app"
+gui = "coro_dt.gui.run:main"
 
 [project.optional-dependencies]
 labelstudio = ["label-studio-converter"]
