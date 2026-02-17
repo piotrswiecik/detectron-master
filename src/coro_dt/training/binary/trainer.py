@@ -16,7 +16,7 @@ from detectron2.evaluation import COCOEvaluator
 from detectron2.utils.logger import setup_logger
 from dotenv import load_dotenv
 
-from coro_dt.config import ParamsConfig
+from coro_dt.config import ParamsConfig, POINTREND_WEIGHTS, apply_pointrend_overrides
 from coro_dt.data.binary_adapter import BinaryAdapter
 from coro_dt.training.binary.hooks import BinaryEvalHook, BinaryMLFlowHook
 from coro_dt.training.multi.mappers import build_custom_mapper
@@ -104,6 +104,11 @@ class BinaryOrchestrator:
             raise ValueError("No training images found")
 
         self.cfg = get_cfg()
+
+        if params.use_pointrend:
+            from detectron2.projects.point_rend import add_pointrend_config
+            add_pointrend_config(self.cfg)
+
         self.cfg.merge_from_file(model_zoo.get_config_file(self.backbone))
 
         self.cfg.DATASETS.TRAIN = ("arcade_binary_train",)
@@ -123,6 +128,11 @@ class BinaryOrchestrator:
 
         self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256
         self.cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1
+
+        if params.use_pointrend:
+            apply_pointrend_overrides(self.cfg, num_classes=1)
+            if weights is None:
+                self.cfg.MODEL.WEIGHTS = POINTREND_WEIGHTS[params.backbone]
 
         self.cfg.OUTPUT_DIR = self.model_output_dir
 

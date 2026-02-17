@@ -28,7 +28,7 @@ import numpy as np
 
 from coro_dt.data.converter import DetectronToArcadeConverter
 from coro_dt.data.metrics import ArcadeMetricsCalculator
-from coro_dt.training.multi.mappers import validation_mapper
+from coro_dt.training.multi.mappers import build_validation_mapper
 
 
 class EvalHook(HookBase):
@@ -92,7 +92,7 @@ class EvalHook(HookBase):
         return build_detection_test_loader(
             self.cfg,
             self.cfg.DATASETS.TEST[0],
-            mapper=validation_mapper,
+            mapper=build_validation_mapper(self.cfg),
         )
 
     def _run_combined_evaluation(self):

@@ -11,7 +11,7 @@ import detectron2.utils.comm as comm
 
 from coro_dt.data.converter import DetectronToArcadeConverter
 from coro_dt.data.metrics import ArcadeMetricsCalculator
-from coro_dt.training.multi.mappers import validation_mapper
+from coro_dt.training.multi.mappers import build_validation_mapper
 
 
 class BinaryEvalHook(HookBase):
@@ -65,7 +65,7 @@ class BinaryEvalHook(HookBase):
         return build_detection_test_loader(
             self.cfg,
             self.cfg.DATASETS.TEST[0],
-            mapper=validation_mapper,
+            mapper=build_validation_mapper(self.cfg),
         )
 
     def _run_evaluation(self):

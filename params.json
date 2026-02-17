@@ -6,5 +6,6 @@
     "roi_batch_size": 512,
     "input_min_sizes": [800, 900, 1000],
     "input_max_size": 1600,
-    "backbone": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml"
+    "backbone": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
+    "use_pointrend": true
 }
