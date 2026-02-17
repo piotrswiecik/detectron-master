@@ -13,3 +13,4 @@ wheels/
 trained_models
 tmp
 figures
+.DS_Store
