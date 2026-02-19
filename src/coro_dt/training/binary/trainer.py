@@ -12,6 +12,7 @@ from detectron2.data import (
     build_detection_train_loader,
 )
 from detectron2.engine import DefaultTrainer
+from detectron2.engine.hooks import BestCheckpointer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.utils.logger import setup_logger
 from dotenv import load_dotenv
@@ -43,6 +44,14 @@ class BinaryTrainer(DefaultTrainer):
         hooks = super().build_hooks()
         hooks.append(BinaryEvalHook(self.cfg))
         hooks.append(BinaryMLFlowHook(self.cfg))
+        if self.cfg.TEST.EVAL_PERIOD > 0:
+            hooks.append(BestCheckpointer(
+                eval_period=self.cfg.TEST.EVAL_PERIOD,
+                checkpointer=self.checkpointer,
+                val_metric="binary/mean_iou",
+                mode="max",
+                file_prefix="model_best",
+            ))
         return hooks
 
 
