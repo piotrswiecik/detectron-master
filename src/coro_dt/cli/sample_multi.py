@@ -9,7 +9,7 @@ from detectron2 import model_zoo
 from detectron2.utils.visualizer import Visualizer, ColorMode
 from detectron2.data import MetadataCatalog
 
-from coro_dt.config import ParamsConfig
+from coro_dt.config import ParamsConfig, apply_pointrend_overrides
 
 app = typer.Typer()
 
@@ -66,6 +66,11 @@ def infer(
         raise typer.Exit(code=1)
 
     cfg = get_cfg()
+
+    if config.use_pointrend:
+        from detectron2.projects.point_rend import add_pointrend_config
+        add_pointrend_config(cfg)
+
     cfg.merge_from_file(
         model_zoo.get_config_file(config.backbone.value)
     )
@@ -78,6 +83,9 @@ def infer(
     cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = config.anchor_ratios
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = config.roi_batch_size
     cfg.MODEL.BACKBONE.FREEZE_AT = config.freeze_at
+
+    if config.use_pointrend:
+        apply_pointrend_overrides(cfg, num_classes=NUM_CLASSES)
 
     if use_cpu:
         cfg.MODEL.DEVICE = "cpu"

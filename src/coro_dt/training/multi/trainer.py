@@ -15,7 +15,7 @@ from detectron2.data import (
 )
 from dotenv import load_dotenv
 import mlflow
-from coro_dt.config import ParamsConfig
+from coro_dt.config import ParamsConfig, POINTREND_WEIGHTS, apply_pointrend_overrides
 from coro_dt.data.adapter import Adapter
 from coro_dt.training.multi.hooks import EvalHook, MLFlowHook
 from coro_dt.training.multi.mappers import build_custom_mapper
@@ -77,31 +77,46 @@ class ArcadeOrchestrator:
                     f"Training data loaded: {self.num_train_images} images, classes: {self.class_names}"
                 )
 
-            DatasetCatalog.register(f"arcade_{split}", lambda a=adapter: a.as_list())
-            MetadataCatalog.get(f"arcade_{split}").set(
+            dataset_name = f"arcade_{split}"
+
+            if dataset_name in DatasetCatalog.list():
+                DatasetCatalog.remove(dataset_name)
+                MetadataCatalog.remove(dataset_name)
+
+            DatasetCatalog.register(dataset_name, lambda a=adapter: a.as_list())
+            MetadataCatalog.get(dataset_name).set(
                 thing_classes=adapter.class_names,
                 id_reverse_map={v: k for k, v in adapter.id_map.items()},
                 adapter_instance=adapter,
             )
 
-            if self.num_train_images == 0:
-                raise ValueError("No training images found")
+        if self.num_train_images == 0:
+            raise ValueError("No training images found")
 
-            self.cfg = get_cfg()
-            self.cfg.merge_from_file(model_zoo.get_config_file(self.backbone))
+        self.cfg = get_cfg()
 
-            self.cfg.DATASETS.TRAIN = ("arcade_train",)
-            self.cfg.DATASETS.TEST = (
-                ("arcade_val",) if "arcade_val" in DatasetCatalog.list() else ()
-            )
+        if params.use_pointrend:
+            from detectron2.projects.point_rend import add_pointrend_config
+            add_pointrend_config(self.cfg)
 
-            self.cfg.DATALOADER.NUM_WORKERS = 4
-            self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.backbone)
+        self.cfg.merge_from_file(model_zoo.get_config_file(self.backbone))
 
-            self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256
-            self.cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(self.class_names)
+        self.cfg.DATASETS.TRAIN = ("arcade_train",)
+        self.cfg.DATASETS.TEST = (
+            ("arcade_val",) if "arcade_val" in DatasetCatalog.list() else ()
+        )
 
-            self.cfg.OUTPUT_DIR = self.model_output_dir
+        self.cfg.DATALOADER.NUM_WORKERS = 4
+        self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(self.backbone)
+
+        self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256
+        self.cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(self.class_names)
+
+        if params.use_pointrend:
+            apply_pointrend_overrides(self.cfg, num_classes=len(self.class_names))
+            self.cfg.MODEL.WEIGHTS = POINTREND_WEIGHTS[params.backbone]
+
+        self.cfg.OUTPUT_DIR = self.model_output_dir
 
     def train(
         self,
