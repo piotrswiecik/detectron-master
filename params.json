@@ -7,5 +7,8 @@
     "input_min_sizes": [1000, 1200, 1333],
     "input_max_size": 2000,
     "backbone": "COCO-InstanceSegmentation/mask_rcnn_R_101_FPN_3x.yaml",
-    "use_pointrend": true
+    "use_pointrend": true,
+    "roi_positive_fraction": 0.5,
+    "rpn_nms_thresh": 0.8,
+    "rpn_post_nms_topk_train": 1500
 }

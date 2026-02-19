@@ -31,6 +31,9 @@ class ParamsConfig(BaseModel):
     input_max_size: int = 1333
     backbone: Backbone = Backbone.R_50
     use_pointrend: bool = False
+    roi_positive_fraction: float = 0.25
+    rpn_nms_thresh: float = 0.7
+    rpn_post_nms_topk_train: int = 2000
 
 
 def apply_pointrend_overrides(cfg, num_classes: int = 1):

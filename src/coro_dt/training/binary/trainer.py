@@ -181,6 +181,9 @@ class BinaryOrchestrator:
         self.cfg.MODEL.ANCHOR_GENERATOR.SIZES = p.anchor_sizes
         self.cfg.MODEL.ANCHOR_GENERATOR.ASPECT_RATIOS = p.anchor_ratios
         self.cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = p.roi_batch_size
+        self.cfg.MODEL.ROI_HEADS.POSITIVE_FRACTION = p.roi_positive_fraction
+        self.cfg.MODEL.RPN.NMS_THRESH = p.rpn_nms_thresh
+        self.cfg.MODEL.RPN.POST_NMS_TOPK_TRAIN = p.rpn_post_nms_topk_train
         self.cfg.INPUT.MIN_SIZE_TRAIN = tuple(p.input_min_sizes)
         self.cfg.INPUT.MAX_SIZE_TRAIN = p.input_max_size
 
